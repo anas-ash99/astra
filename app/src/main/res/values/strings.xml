@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Astra AI</string>
+    <string name="Text_field_main_hint">Type, talk, or share a photo to Astra AI</string>
+    <string name="Text_field_chat_hint">Type, talk, or share a photo</string>
+</resources>
