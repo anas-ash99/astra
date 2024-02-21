@@ -1,6 +1,5 @@
 package com.anas.aiassistant.presentaion
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,7 +16,7 @@ import com.anas.aiassistant.ui.theme.AppMainColor
 fun LoadingSpinner(isVisible:Boolean) {
     if (!isVisible) return
     Column (
-        modifier = Modifier.fillMaxSize().clickable {  },
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement= Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ){

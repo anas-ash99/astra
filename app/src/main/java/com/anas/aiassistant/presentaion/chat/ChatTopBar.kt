@@ -30,11 +30,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.anas.aiassistant.R
-import com.anas.aiassistant.domain.viewModel.MainViewModel
+import com.anas.aiassistant.domain.viewModel.ChatScreenViewModel
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
-fun ChatTopBar(navController: NavController?,viewModel: MainViewModel){
+fun ChatTopBar(navController: NavController?,viewModel: ChatScreenViewModel){
     Row(
         modifier= Modifier
             .fillMaxWidth()
@@ -50,7 +50,7 @@ fun ChatTopBar(navController: NavController?,viewModel: MainViewModel){
             modifier = Modifier
                 .height(40.dp)
                 .width(40.dp)
-                .clickable { onBackClick(viewModel, navController) }
+                .clickable { viewModel.onBackClick(navController) }
         )
 
         Text(
@@ -71,19 +71,11 @@ fun ChatTopBar(navController: NavController?,viewModel: MainViewModel){
 
 }
 
-fun onBackClick(viewModel: MainViewModel, navController: NavController?){
-    viewModel.messageTextFieldFocus = false
-    viewModel.messageTextInput = "Type, talk, or share a photo to Astra AI"
-    if (viewModel.isTextFieldCardShown){
-        viewModel.isTextFieldCardShown = false
-    }else{
-        navController?.popBackStack()
-    }
-}
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview
 @Composable
 fun prev() {
-    ChatTopBar(navController =null , viewModel = MainViewModel() )
+    ChatTopBar(navController =null , viewModel = ChatScreenViewModel() )
 }

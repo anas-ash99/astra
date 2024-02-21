@@ -18,10 +18,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.anas.aiassistant.R
-import com.anas.aiassistant.domain.viewModel.MainViewModel
+import com.anas.aiassistant.domain.viewModel.ChatScreenViewModel
 
 @Composable
-fun MessageHeader(msg:String, viewModel: MainViewModel){
+fun MessageHeader(msg:String, viewModel: ChatScreenViewModel){
 
     Row(
         modifier= Modifier

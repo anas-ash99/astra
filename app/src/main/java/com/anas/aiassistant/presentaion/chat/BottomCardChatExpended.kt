@@ -3,13 +3,10 @@ package com.anas.aiassistant.presentaion.chat
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -20,8 +17,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,19 +28,22 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.anas.aiassistant.R
 import com.anas.aiassistant.domain.viewModel.ChatScreenViewModel
+import com.anas.aiassistant.presentaion.CamAndMicContainer
+import com.anas.aiassistant.presentaion.CircularIconButton
 import com.anas.aiassistant.shared.StringValues.text_field_hint_expanded
+import com.anas.aiassistant.ui.theme.SendIconClickableColor
+import com.anas.aiassistant.ui.theme.SendIconNotClickableColor
 import com.anas.aiassistant.ui.theme.TextPrimaryColor
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+
 @Composable
 fun BottomCardChatExpended(viewModel: ChatScreenViewModel?) {
 
@@ -76,59 +74,23 @@ fun BottomCardChatExpended(viewModel: ChatScreenViewModel?) {
                     .width(0.dp)) {
                 }
 
-                IconsContainerChat()
-                Icon(
-                    imageVector = Icons.Filled.Send,
-                    contentDescription = "Send Message",
-                    modifier = Modifier
-                        .height(22.dp)
-                        .width(22.dp)
-                        .clickable {
-                            viewModel?.onSendClick()
-                            },
-                    tint = viewModel?.sendIconColor!!
+                CamAndMicContainer()
+                val sendIconPainter = rememberVectorPainter(image = Icons.Filled.Send)
+                CircularIconButton(onClick = {
+                    viewModel?.onSendClick()
+                },
+                    icon = sendIconPainter,
+                    contentDescription = "mic",
+                    iconTint = viewModel?.sendIconColor!!,
+                    backgroundColor = Color.White
                 )
+
             }
         }
     }
 }
 
 
-@Composable
-fun IconsContainerChat(){
-    Card(
-        modifier = Modifier
-            .height(55.dp)
-            .width(130.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFd3e3fd)
-        ),
-        shape = RoundedCornerShape(28.dp),
-    ){
-        Row (
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment= Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(start = 25.dp, end = 25.dp)
-        ){
-            Image(
-                painter = painterResource(id = R.drawable.mic_icon) ,
-                contentDescription ="Microphone",
-                modifier = Modifier
-                    .width(23.dp)
-                    .height(23.dp))
-            Image(
-                painter = painterResource(id = R.drawable.camera_icon) ,
-                contentDescription ="Camera",
-                modifier = Modifier
-                    .width(23.dp)
-                    .height(23.dp))
-        }
-    }
-}
-
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ClickableTextFieldChat(mainViewModel: ChatScreenViewModel?) {
     val focusRequester = remember { FocusRequester() }
@@ -137,10 +99,10 @@ fun ClickableTextFieldChat(mainViewModel: ChatScreenViewModel?) {
         onValueChange = {
             mainViewModel.messageTextInput = it
             if (it.trim().isBlank()){
-                mainViewModel.sendIconColor = Color(0xB7747474)
-
+                mainViewModel.sendIconColor = SendIconNotClickableColor
+                mainViewModel.messageTexFieldColor = TextPrimaryColor
             }else{
-                mainViewModel.sendIconColor = Color(0xFF222222)
+                mainViewModel.sendIconColor = SendIconClickableColor
             }
                  },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
@@ -165,6 +127,7 @@ fun ClickableTextFieldChat(mainViewModel: ChatScreenViewModel?) {
         }
     }
 }
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Preview
 @Composable

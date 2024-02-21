@@ -25,7 +25,7 @@ fun SuggestionCard(text:String, mainViewModel: MainViewModel){
         color = Color(0xFFF0F3F8),
     ){
          Text(
-             text = "Hello there how are you doing today ?",
+             text = text,
              modifier = Modifier
                  .padding(12.dp)
          )

@@ -11,10 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.anas.aiassistant.domain.viewModel.MainViewModel
+import com.anas.aiassistant.domain.viewModel.ChatScreenViewModel
 
 @Composable
-fun MessageRow(role:String, content:String, viewModel: MainViewModel){
+fun MessageRow(role:String, content:String, viewModel: ChatScreenViewModel){
     Column(
         modifier = Modifier.fillMaxWidth()) {
         if (role == "user"){
