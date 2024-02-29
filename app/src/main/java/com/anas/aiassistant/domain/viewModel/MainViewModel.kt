@@ -1,120 +1,110 @@
 package com.anas.aiassistant.domain.viewModel
 
-import android.os.Build
+import android.annotation.SuppressLint
+import android.app.Application
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.anas.aiassistant.data.AppData.chats
-import com.anas.aiassistant.data.OpenAiImpl
-import com.anas.aiassistant.data.Repository
 import com.anas.aiassistant.dataState.DataState
 import com.anas.aiassistant.model.Chat
 import com.anas.aiassistant.model.Message
+import com.anas.aiassistant.model.Repository
 import com.anas.aiassistant.model.openAi.ChatGBTMessage
 import com.anas.aiassistant.shared.StringValues.text_field_hint_expanded
 import com.anas.aiassistant.ui.theme.SendIconClickableColor
-import com.anas.aiassistant.ui.theme.SendIconNotClickableColor
-import com.anas.aiassistant.ui.theme.TextPrimaryColor
-import com.anas.aiassistant.ui.theme.TextSecondaryColor
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.time.LocalTime
 import java.util.UUID
+import javax.inject.Inject
 
-class MainViewModel:ViewModel() {
 
-    var chatList by mutableStateOf(chats)
-    private val repository:Repository = OpenAiImpl()
-    var sendIconColor by mutableStateOf(SendIconNotClickableColor)
+@SuppressLint("StaticFieldLeak")
+@HiltViewModel
+class MainViewModel @Inject constructor(
+    private val repository: Repository,
+     private val context: Application
+) :BaseViewModel(
+    repository,
+    context
+) {
+
 
     var mainScreenLoading by mutableStateOf(false)
-    var messageTextInput by mutableStateOf(text_field_hint_expanded)
-    var messageTexFieldColor by mutableStateOf(TextSecondaryColor) /// start with the secondary text
-    var messageTextFieldFocus by mutableStateOf(false)
-    var chatGbtLoading by mutableStateOf(false)
+    var isErrorDialogShown by mutableStateOf(false)
+    private var isInitialized = false
 
 
 
-    fun onSendClick(navController: NavController){
-        if (messageTextInput.trim().isNotBlank() && messageTextInput.trim() != text_field_hint_expanded){
-            val tempChat = Chat()
-            tempChat.id = UUID.randomUUID().toString()
-            if (messageTextInput.length > 40){
-                tempChat.title = messageTextInput.take(30) + "..."
-            }else{
-                tempChat.title = messageTextInput
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                tempChat.messages.add(Message(id = UUID.randomUUID().toString(), chatId = tempChat.id, content = messageTextInput.trim(), role = "user", createdAt = LocalTime.now().toString()))
-            }else{
-                tempChat.messages.add(Message(id = UUID.randomUUID().toString(), chatId = tempChat.id, content = messageTextInput.trim(), role = "user", createdAt = ""))
-            }
-            chats.add(tempChat)
-            navController.navigate("chat_screen/${tempChat.id}")
-            // set the message text field to the default
-            messageTextFieldFocus = false
-            messageTexFieldColor = TextSecondaryColor
-            messageTextInput = text_field_hint_expanded
-            sendIconColor = SendIconNotClickableColor
+    fun init(){
+        if (!isInitialized){ // run this code only once th
+            getAllChats()
+            isInitialized = true
+        }
+    }
+
+    private fun getAllChats(){
+        viewModelScope.launch {
+            repository?.getAllChats()?.onEach {
+                when(it){
+                    is DataState.Error -> {
+                        chatGbtLoading  = false
+                    }
+                    DataState.Loading -> {
+//                        chatGbtLoading  = true
+                    }
+                    is DataState.Success -> {
+                        chatList = it.data
+                        chatGbtLoading  = false
+                    }
+                }
+            }?.launchIn(viewModelScope)
         }
     }
 
 
-//    private fun getChatGbtResponse(tempChat: Chat) {
-//        viewModelScope.launch {
-//               // set the message text field to the default
-//                messageTextFieldFocus = false
-//                isTextFieldCardShown = false
-//                messageTexFieldColor = TextSecondaryColor
-//                messageTextInput = text_field_hint_expanded
-//                val list = arrayListOf<ChatGBTMessage>()
-//                tempChat.messages.forEach { msg ->
-//                    list.add(ChatGBTMessage(role = msg.role, content = msg.content))
-//                }
-//
-//
-//            // send the api request
-//            var chatRes: ChatCompletionRes
-//            repository.sentChatRequest(list).onEach {
-//                when(it){
-//                    is DataState.Success ->{
-//                        chatRes = it.data
-//                        val resMessage = chatRes.choices[0].message.content
-//                        val newMsg = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//                            Message(id = UUID.randomUUID().toString(), chatId = tempChat.id, content = resMessage, role = "system", createdAt = LocalTime.now().toString())
-//                        } else {
-//                            Message(id = UUID.randomUUID().toString(), chatId = tempChat.id, content = resMessage, role = "system", createdAt = "")
-//                        }
-//                        tempChat.messages.add(newMsg)
-//                        //tempChat = tempChat
-//                        scrollPosition = tempChat.messages.size -1
-//                        chatGbtLoading = false
-//                    }
-//                    is DataState.Error -> {
-//                        chatGbtLoading = false
-//                    }
-//                    DataState.Loading -> {
-//                        chatGbtLoading = true
-//                    }
-//                }
-//            }.launchIn(viewModelScope)
-//        }
-//    }
+    override fun onSendClick(navController: NavController?){
 
+        if (messageTextInput.text.trim().isNotBlank() && messageTextInput.text.trim() != text_field_hint_expanded){
+            val tempChat = Chat()
+            tempChat.id = UUID.randomUUID().toString()
+            if (messageTextInput.text.length > 28){
+                tempChat.title = messageTextInput.text.take(28) + "..."
+            }else{
+                tempChat.title = messageTextInput.text
+            }
+            val newMessage = Message(id = UUID.randomUUID().toString(), chatId = tempChat.id, content = messageTextInput.text.trim(), role = "user", createdAt = "")
+            tempChat.messages.add(newMessage)
+            chats.add(tempChat)
+            saveMessageToDB(newMessage)
+            navController?.navigate("chat_screen/${tempChat.id}")
+            // set the message text field to the default
+            restMessageTextFieldToDefault()
+        }
+    }
 
     private fun getSuggestions() {
         viewModelScope.launch {
 
+            val content =
+                   "Provide me with the 10 most popular diverse questions people would ask in any field around the world, and keep them concise.\n" +
+                           "\n" +
+                           "I need all questions in one line each question separated by , \n" +
+                           "For example: how is your day , what is Metaverse"
             val list = arrayListOf<ChatGBTMessage>()
-            list.add(ChatGBTMessage(role = "user", content = "what are the most popular prompts make them diverse"))
+            list.add(ChatGBTMessage(role = "user", content = content))
 
-            repository.sentChatRequest(list).onEach {
+            repository?.sentChatRequest(list)?.onEach {
                 when(it){
                     is DataState.Error -> {
+                        isErrorDialogShown = true
                         mainScreenLoading = false
                     }
                     DataState.Loading -> {
@@ -122,19 +112,18 @@ class MainViewModel:ViewModel() {
                     }
                     is DataState.Success -> {
                         val resMessage = it.data.choices[0].message.content
-                        println(resMessage)
+                        Log.i("suggestions", resMessage)
+
                         mainScreenLoading = false
                     }
                 }
-            }.launchIn(viewModelScope)
+            }?.launchIn(viewModelScope)
         }
     }
 
-
     fun onSuggestionCardClick(text:String){
         messageTextFieldFocus = true
-        messageTextInput = text
-        messageTexFieldColor = TextPrimaryColor
+        messageTextInput = TextFieldValue(text, TextRange(text.length))
         sendIconColor = SendIconClickableColor
     }
 }

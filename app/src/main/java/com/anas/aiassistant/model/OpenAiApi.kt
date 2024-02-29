@@ -1,4 +1,4 @@
-package com.anas.aiassistant.data
+package com.anas.aiassistant.model
 
 import com.anas.aiassistant.model.openAi.ChatCompletionRes
 import com.anas.aiassistant.model.openAi.CompletionRequest

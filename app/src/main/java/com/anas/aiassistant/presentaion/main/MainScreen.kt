@@ -1,7 +1,9 @@
 package com.anas.aiassistant.presentaion.main
 
-import android.os.Build
-import androidx.annotation.RequiresApi
+import ai.picovoice.porcupine.Porcupine
+import ai.picovoice.porcupine.PorcupineManager
+import android.annotation.SuppressLint
+import android.speech.SpeechRecognizer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -24,41 +26,66 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.anas.aiassistant.data.AppData.suggestions
 import com.anas.aiassistant.domain.viewModel.MainViewModel
+import com.anas.aiassistant.presentaion.ErrorDialog
+import com.anas.aiassistant.presentaion.LoadingSpinner
+import com.anas.aiassistant.presentaion.bottomCard.BottomCard
+import com.anas.aiassistant.presentaion.rememberImeState
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+@SuppressLint("MissingPermission")
 @Composable
 fun MainScreen(navController: NavHostController?) {
+    val mainViewModel = hiltViewModel<MainViewModel>()
+    val context = LocalContext.current
 
-    val mainViewModel = viewModel(MainViewModel::class.java)
+    // removing keyboard overlap the ui by listing the screen size changes
+    val imaState = rememberImeState()
+    val speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
+    val scrollState = rememberScrollState()
+    LaunchedEffect(Unit){
+        mainViewModel.init()
+    }
+
+    // scroll down all the way to the bottom of screen when the keyboard is open
+    LaunchedEffect(key1 = imaState.value){
+        scrollState.scrollTo(scrollState.maxValue)
+    }
+
 
     Column (
         verticalArrangement= Arrangement.Top,
         horizontalAlignment = Alignment.Start,
-
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
+
 
     ) {
         Text(
             text = "Astra AI",
             style = TextStyle(
-                color = Color(0xFF007AFF),
-                fontSize = 36.sp
+                fontSize = 36.sp,
+                brush = Brush.linearGradient(
+                    colors = listOf(Color(0xFF5982de), Color.Red),
+
+                ),
+
             ),
             modifier = Modifier
                 .fillMaxWidth()
@@ -70,9 +97,8 @@ fun MainScreen(navController: NavHostController?) {
                }
            }
 
-
         Button(
-            onClick = { print("") },
+            onClick = { navController?.navigate("recent_chats_screen")  },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Transparent,
                 contentColor = Color.Black
@@ -91,7 +117,8 @@ fun MainScreen(navController: NavHostController?) {
                 Text(
                     text = "Recent",
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+
                 )
 
                 Icon(
@@ -105,21 +132,40 @@ fun MainScreen(navController: NavHostController?) {
             }
         }
 
-
-        for (recentItem in mainViewModel?.chatList?.takeLast(3)!!){
+        for (recentItem in mainViewModel.chatList.takeLast(3)){
             RecentRow(recentItem.title, recentItem.id, navController)
         }
         Spacer(modifier = Modifier.weight(1f)) // Pushes content up
         BottomCard(mainViewModel, navController!!)
     }
 
+    // display an error dialog when needed
+    ErrorDialog(onOkClick = { mainViewModel.isErrorDialogShown = !mainViewModel.isErrorDialogShown}, isVisible = mainViewModel.isErrorDialogShown )
 
+    // display a loading spinner
+    LoadingSpinner(isVisible = mainViewModel.chatGbtLoading)
+    val keywords = arrayOf(Porcupine.BuiltInKeyword.PORCUPINE, Porcupine.BuiltInKeyword.BUMBLEBEE)
+
+    val accessKey = "xt5oThE5dlH78GexSdzPrXH6mRr+QGF0KsD57D77o7LddS9mWvivyw=="
+    val keywordPath = "file://${context.assets}/Astra_en_android_v3_0_0.ppn"
+
+    val porcupineManager = PorcupineManager.Builder()
+        .setAccessKey(accessKey)
+        .setKeyword(Porcupine.BuiltInKeyword.BUMBLEBEE)
+        .build(LocalContext.current) { keywordIndex ->
+            if (keywordIndex == 0) {
+                // BUMBLEBEE detected
+                mainViewModel.onMickClick(speechRecognizer)
+            }
+        }
+
+    LaunchedEffect(Unit) {
+        // Audio Setup
+//        porcupineManager.start()
+    }
 }
 
 
-
-
-@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = false, device = "id:pixel_6_pro")
 @Composable
 fun MainScreenPreview(){

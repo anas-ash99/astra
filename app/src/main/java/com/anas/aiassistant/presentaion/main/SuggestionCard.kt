@@ -36,5 +36,5 @@ fun SuggestionCard(text:String, mainViewModel: MainViewModel){
 @Preview(showBackground = true, device = "id:pixel_7_pro")
 @Composable
 fun SuggestionCardPreview(){
-    SuggestionCard(text = "hello there", MainViewModel())
+//    SuggestionCard(text = "hello there", MainViewModel())
 }
