@@ -17,18 +17,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.anas.aiassistant.domain.viewModel.ChatScreenViewModel
+import com.anas.aiassistant.dataState.MessageTextFieldState
 import com.anas.aiassistant.presentaion.bottomCard.CamAndMicContainer
+import com.anas.aiassistant.shared.BaseViewmodelEvents
+import com.anas.aiassistant.shared.ChatScreenEvent
 import com.anas.aiassistant.shared.StringValues.text_field_hint_short
 import com.anas.aiassistant.ui.theme.TextSecondaryColor
 
 @Composable
-fun BottomChatCard(mainViewModel: ChatScreenViewModel?) {
+fun BottomChatCard(state: MessageTextFieldState, onEvent:(BaseViewmodelEvents)->Unit, onScreenEvent: (ChatScreenEvent) ->Unit) {
     Column(
         modifier = Modifier
             .background(Color.White),
@@ -49,10 +49,11 @@ fun BottomChatCard(mainViewModel: ChatScreenViewModel?) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable {
-                        mainViewModel?.isTextFieldCardShown = true
-                        mainViewModel?.messageTextInput = TextFieldValue("", TextRange(0))
-                        mainViewModel?.messageTextFieldFocus = true
-                        mainViewModel?.launchedEffectTFFocusTrigger =+ 1
+                        onScreenEvent(ChatScreenEvent.OnBottomChatCardClick)
+//                        mainViewModel?.isTextFieldCardShown = true
+//                        mainViewModel?.messageTextInput = TextFieldValue("", TextRange(0))
+//                        mainViewModel?.messageTextFieldFocus = true
+//                        mainViewModel?.launchedEffectTFFocusTrigger =+ 1
                     }
 
             ) {
@@ -64,7 +65,7 @@ fun BottomChatCard(mainViewModel: ChatScreenViewModel?) {
                     fontSize = 15.sp,
                     color = TextSecondaryColor
                 )
-                CamAndMicContainer(modifier = Modifier.padding(end = 5.dp), viewModel = mainViewModel!!)
+                CamAndMicContainer(modifier = Modifier.padding(end = 5.dp), state, onEvent )
             }
 
 

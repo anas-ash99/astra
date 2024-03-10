@@ -1,7 +1,5 @@
-package com.anas.aiassistant.presentaion.chat
+package com.anas.aiassistant.presentaion
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -26,35 +24,33 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import com.anas.aiassistant.domain.viewModel.ChatScreenViewModel
-import com.anas.aiassistant.presentaion.CircularIconButton
 
 
 @Composable
-fun ChatTopBar(navController: NavController?,viewModel: ChatScreenViewModel){
+fun ScreenTopBar(
+    title:String,
+    onBackIconClick:()->Unit
+){
     val backIconPainter = rememberVectorPainter(image = Icons.AutoMirrored.Filled.KeyboardArrowLeft)
     Row(
         modifier= Modifier
             .fillMaxWidth()
             .height(55.dp)
             .background(Color.White)
-            .padding(start = 5.dp, end = 5.dp,),
+            .padding( start = 3.dp, end = 5.dp,),
         horizontalArrangement= Arrangement.SpaceBetween,
         verticalAlignment= Alignment.CenterVertically,
     ) {
         CircularIconButton(
             iconSize = (40.dp),
-            onClick = {
-                viewModel.onBackClick(navController)
-            },
+            onClick = onBackIconClick,
             icon = backIconPainter ,
             contentDescription ="Go Back Icon",
             backgroundColor = Color.White
         )
 
         Text(
-            text = viewModel.openChat.title,
+            text = title,
             fontSize = 19.sp,
             fontWeight = FontWeight.Normal,
         )
@@ -75,9 +71,8 @@ fun ChatTopBar(navController: NavController?,viewModel: ChatScreenViewModel){
 
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Preview
 @Composable
 fun prev() {
-//    ChatTopBar(navController =null , viewModel = ChatScreenViewModel() )
+    ScreenTopBar("hello"){}
 }

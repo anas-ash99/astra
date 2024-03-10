@@ -1,9 +1,6 @@
 package com.anas.aiassistant.presentaion.main
 
-import ai.picovoice.porcupine.Porcupine
-import ai.picovoice.porcupine.PorcupineManager
 import android.annotation.SuppressLint
-import android.speech.SpeechRecognizer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,11 +24,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,21 +43,22 @@ import com.anas.aiassistant.presentaion.ErrorDialog
 import com.anas.aiassistant.presentaion.LoadingSpinner
 import com.anas.aiassistant.presentaion.bottomCard.BottomCard
 import com.anas.aiassistant.presentaion.rememberImeState
+import com.anas.aiassistant.shared.MainScreenEvent
 
 
 @SuppressLint("MissingPermission")
 @Composable
 fun MainScreen(navController: NavHostController?) {
     val mainViewModel = hiltViewModel<MainViewModel>()
-    val context = LocalContext.current
 
+    val state by mainViewModel.state.collectAsState()
+    val textFieldState by mainViewModel.textFieldState.collectAsState()
     // removing keyboard overlap the ui by listing the screen size changes
     val imaState = rememberImeState()
-    val speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
-    val scrollState = rememberScrollState()
     LaunchedEffect(Unit){
         mainViewModel.init()
     }
+    val scrollState = rememberScrollState()
 
     // scroll down all the way to the bottom of screen when the keyboard is open
     LaunchedEffect(key1 = imaState.value){
@@ -74,8 +73,6 @@ fun MainScreen(navController: NavHostController?) {
             .fillMaxSize()
             .background(Color.White)
             .verticalScroll(scrollState)
-
-
     ) {
         Text(
             text = "Astra AI",
@@ -93,12 +90,12 @@ fun MainScreen(navController: NavHostController?) {
         )
            LazyRow{
                items(suggestions){ suggestion ->
-                  SuggestionCard(text = suggestion, mainViewModel)
+                  SuggestionCard(text = suggestion, mainViewModel::onEvent)
                }
            }
 
         Button(
-            onClick = { navController?.navigate("recent_chats_screen")  },
+            onClick = { mainViewModel.onEvent(MainScreenEvent.OnRecentClick(navController!!))  },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Transparent,
                 contentColor = Color.Black
@@ -132,37 +129,19 @@ fun MainScreen(navController: NavHostController?) {
             }
         }
 
-        for (recentItem in mainViewModel.chatList.takeLast(3)){
+        for (recentItem in mainViewModel.chatList.takeLast(3).reversed()){
             RecentRow(recentItem.title, recentItem.id, navController)
         }
         Spacer(modifier = Modifier.weight(1f)) // Pushes content up
-        BottomCard(mainViewModel, navController!!)
+        BottomCard(navController!!, mainViewModel::onEvent, textFieldState)
     }
 
     // display an error dialog when needed
-    ErrorDialog(onOkClick = { mainViewModel.isErrorDialogShown = !mainViewModel.isErrorDialogShown}, isVisible = mainViewModel.isErrorDialogShown )
+    ErrorDialog(onOkClick = {mainViewModel.onEvent(MainScreenEvent.OnOkErrorDialogClick)}, isVisible = state.isErrorDialogShown )
 
     // display a loading spinner
-    LoadingSpinner(isVisible = mainViewModel.chatGbtLoading)
-    val keywords = arrayOf(Porcupine.BuiltInKeyword.PORCUPINE, Porcupine.BuiltInKeyword.BUMBLEBEE)
+    LoadingSpinner(isVisible = state.isScreenLoading)
 
-    val accessKey = "xt5oThE5dlH78GexSdzPrXH6mRr+QGF0KsD57D77o7LddS9mWvivyw=="
-    val keywordPath = "file://${context.assets}/Astra_en_android_v3_0_0.ppn"
-
-    val porcupineManager = PorcupineManager.Builder()
-        .setAccessKey(accessKey)
-        .setKeyword(Porcupine.BuiltInKeyword.BUMBLEBEE)
-        .build(LocalContext.current) { keywordIndex ->
-            if (keywordIndex == 0) {
-                // BUMBLEBEE detected
-                mainViewModel.onMickClick(speechRecognizer)
-            }
-        }
-
-    LaunchedEffect(Unit) {
-        // Audio Setup
-//        porcupineManager.start()
-    }
 }
 
 

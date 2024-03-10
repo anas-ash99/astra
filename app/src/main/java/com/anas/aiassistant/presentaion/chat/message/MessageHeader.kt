@@ -25,12 +25,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.anas.aiassistant.R
-import com.anas.aiassistant.domain.viewModel.ChatScreenViewModel
 import com.anas.aiassistant.model.Message
+import com.anas.aiassistant.shared.ChatScreenEvent
 import com.anas.aiassistant.shared.MessageReadingState
 
 @Composable
-fun MessageHeader(message: Message, viewModel: ChatScreenViewModel){
+fun MessageHeader(message: Message, onEvent:(ChatScreenEvent) -> Unit){
 
     Row(
         modifier= Modifier
@@ -67,7 +67,8 @@ fun MessageHeader(message: Message, viewModel: ChatScreenViewModel){
                         .height(22.dp)
                         .width(22.dp)
                         .clickable {
-                            viewModel.readMessage(message.content, message.id)
+                            onEvent(ChatScreenEvent.OnReadIconClick(message.content, message.id))
+//                            viewModel.readMessage(message.content, message.id)
                         }
                 )
             }
@@ -79,7 +80,8 @@ fun MessageHeader(message: Message, viewModel: ChatScreenViewModel){
                         .height(22.dp)
                         .width(22.dp)
                         .clickable {
-                            viewModel.stopAudio(message.id)
+                            onEvent(ChatScreenEvent.OnPauseIconClick(message.id))
+
                         }
                 )
             }

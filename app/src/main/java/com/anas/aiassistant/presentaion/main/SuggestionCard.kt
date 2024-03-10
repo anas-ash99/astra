@@ -11,16 +11,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.anas.aiassistant.domain.viewModel.MainViewModel
+import com.anas.aiassistant.shared.MainScreenEvent
 
 
 @Composable
-fun SuggestionCard(text:String, mainViewModel: MainViewModel){
+fun SuggestionCard(text:String, onEvent:(MainScreenEvent)-> Unit){
     Surface (
         modifier = Modifier
             .size(width = 200.dp, height = 170.dp)
             .padding(10.dp)
-            .clickable { mainViewModel.onSuggestionCardClick(text) },
+            .clickable { onEvent(MainScreenEvent.OnSuggestionCardClick(text)) },
         shape = RoundedCornerShape(8.dp),
         color = Color(0xFFF0F3F8),
     ){

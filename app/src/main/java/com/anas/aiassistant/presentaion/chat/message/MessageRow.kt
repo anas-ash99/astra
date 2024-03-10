@@ -16,11 +16,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.anas.aiassistant.domain.viewModel.ChatScreenViewModel
 import com.anas.aiassistant.model.Message
+import com.anas.aiassistant.shared.ChatScreenEvent
 
 @Composable
-fun MessageRow(message: Message, viewModel: ChatScreenViewModel){
+fun MessageRow(message: Message, onEvent:(ChatScreenEvent) -> Unit){
     Column(
         modifier = Modifier.fillMaxWidth().background(Color.White)) {
         if (message.role == "user"){
@@ -42,7 +42,7 @@ fun MessageRow(message: Message, viewModel: ChatScreenViewModel){
             }
 
         }else{
-            MessageHeader(message, viewModel)
+            MessageHeader(message, onEvent)
 
             if (message.isContentLoading){
                 Box (

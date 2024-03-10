@@ -16,31 +16,27 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import com.anas.aiassistant.domain.viewModel.BaseViewModel
+import com.anas.aiassistant.dataState.MessageTextFieldState
 import com.anas.aiassistant.shared.BaseViewmodelEvents
-import com.anas.aiassistant.ui.theme.SendIconClickableColor
-import com.anas.aiassistant.ui.theme.SendIconNotClickableColor
 import com.anas.aiassistant.ui.theme.TextPrimaryColor
 import com.anas.aiassistant.ui.theme.TextSecondaryColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CustomTextField(viewModel: BaseViewModel?) {
+fun CustomTextField(state:MessageTextFieldState, onEvent:(BaseViewmodelEvents)->Unit ) {
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
 
 
     TextField(
-        value = viewModel?.messageTextInput!!,
-        onValueChange = { viewModel.onEvent(BaseViewmodelEvents.SetMessageInput(it.text)) },
+        value = state.messageTextInput,
+        onValueChange = { onEvent(BaseViewmodelEvents.SetMessageInput(it.text)) },
         placeholder = {
-            Text(text = viewModel.messageTextInputHint, fontSize = 23.sp, color = TextSecondaryColor)
+            Text(text = state.messageTextInputHint, fontSize = 23.sp, color = TextSecondaryColor)
         },
         modifier = Modifier
             .fillMaxWidth()
@@ -59,8 +55,8 @@ fun CustomTextField(viewModel: BaseViewModel?) {
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
     )
 
-    LaunchedEffect(viewModel.messageTextFieldFocus, viewModel.launchedEffectTFFocusTrigger) {
-        if (viewModel.messageTextFieldFocus){
+    LaunchedEffect(state.messageTextFieldFocus, state.launchedEffectTFFocusTrigger) {
+        if (state.messageTextFieldFocus){
             focusRequester.requestFocus()
             keyboardController?.show()
         }else{
@@ -71,15 +67,6 @@ fun CustomTextField(viewModel: BaseViewModel?) {
     }
 }
 
-fun onValueChange(text:String, viewModel: BaseViewModel) {
-    viewModel.cursorPosition = text.length
-    viewModel.messageTextInput = TextFieldValue(text, TextRange(viewModel.cursorPosition))
-    if (text.trim().isBlank()) {
-        viewModel.sendIconColor = SendIconNotClickableColor
-    } else {
-        viewModel.sendIconColor = SendIconClickableColor
-    }
-}
 
 @Preview
 @Composable

@@ -23,12 +23,12 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.anas.aiassistant.domain.viewModel.BaseViewModel
+import com.anas.aiassistant.dataState.MessageTextFieldState
 import com.anas.aiassistant.presentaion.CircularIconButton
 import com.anas.aiassistant.shared.BaseViewmodelEvents
 
 @Composable
-fun BottomCard(viewModel: BaseViewModel?, navController: NavController?) {
+fun BottomCard(navController: NavController?, onEvent:(BaseViewmodelEvents)->Unit, state: MessageTextFieldState) {
 
     Surface(
         modifier = Modifier
@@ -42,7 +42,7 @@ fun BottomCard(viewModel: BaseViewModel?, navController: NavController?) {
 
         Column(modifier = Modifier.padding()) {
 
-            CustomTextField(viewModel)
+            CustomTextField(state,onEvent)
             Row(
                 horizontalArrangement= Arrangement.SpaceBetween,
                 verticalAlignment= Alignment.CenterVertically,
@@ -55,16 +55,15 @@ fun BottomCard(viewModel: BaseViewModel?, navController: NavController?) {
                     .width(0.dp)) {
                 }
 
-                CamAndMicContainer(viewModel = viewModel!!)
+                CamAndMicContainer(state = state, onEvent = onEvent)
                 val sendIconPainter = rememberVectorPainter(image = Icons.AutoMirrored.Filled.Send)
                 CircularIconButton(
                     onClick = {
-                        viewModel.onEvent(BaseViewmodelEvents.OnSendClick(navController))
-
+                        onEvent(BaseViewmodelEvents.OnSendClick(navController))
                 },
                     icon = sendIconPainter,
                     contentDescription = "mic",
-                    iconTint = viewModel.sendIconColor,
+                    iconTint = state.sendIconColor,
                     backgroundColor = Color.White
                 )
 
