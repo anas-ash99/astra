@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.sp
 
 
 @Composable
-fun ErrorDialog (dialogMessage: String = "Something went wrong playing the audio", onOkClick:()->Unit, isVisible:Boolean){
+fun ErrorDialog (dialogMessage: String = "Something went wrong", onOkClick:()->Unit, isVisible:Boolean){
 
      if (!isVisible) return
     Box(

@@ -9,7 +9,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.anas.aiassistant.data.AppData.chats2
+import com.anas.aiassistant.data.AppData.chats
 import com.anas.aiassistant.dataState.DataState
 import com.anas.aiassistant.dataState.MainScreenState
 import com.anas.aiassistant.model.ChatForDB
@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
@@ -40,7 +41,6 @@ class MainViewModel @Inject constructor(
     private val databaseRepository: DatabaseRepository,
     speechRecognizer : SpeechRecognizer
 ) :BaseViewModel(
-    remoteRepository,
     context,
     databaseRepository,
     speechRecognizer
@@ -95,26 +95,22 @@ class MainViewModel @Inject constructor(
             val currentDateTime = ZonedDateTime.now()
             val formattedDateTime = currentDateTime.format(DateTimeFormatter.ISO_INSTANT)
 
-            /// create custom date time
-//            val customDateTime = ZonedDateTime.of(2023, 1, 29, 10, 30, 0, 0, ZoneId.systemDefault())
-//            val formattedCustomDateTime = customDateTime.format(DateTimeFormatter.ISO_INSTANT)
+            // create custom date time
+            val customDateTime = ZonedDateTime.of(2024, 3, 8, 10, 30, 0, 0, ZoneId.systemDefault())
+            val formattedCustomDateTime = customDateTime.format(DateTimeFormatter.ISO_INSTANT)
             val tempChat = ChatForDB()
 
             tempChat.id = UUID.randomUUID().toString()
             tempChat.createdAt = formattedDateTime
 
-//            if (textFieldState.value.messageTextInput.text.length > 28){
-//                tempChat.title = textFieldState.value. messageTextInput.text.take(28) + "..."
-//            }else{
-//                tempChat.title = textFieldState.value.messageTextInput.text
-//            }
+
             val newMessage = Message(id = UUID.randomUUID().toString(), chatId = tempChat.id, content = textFieldState.value.messageTextInput.text.trim(), role = "user", createdAt = formattedDateTime)
 //            tempChat.messages.add(newMessage)
             tempChat.lastMessageTimestamp = newMessage.createdAt
-            chats2.add(tempChat)
+            chats.add(tempChat)
             saveMessageToDB(newMessage)
             saveChatToDb(tempChat)
-
+            updateChatLastMessagesTimeStamp(newMessage.createdAt, tempChat.id)
             navController?.navigate("chat_screen/${tempChat.id}")
             // set the message text field to the default
             restMessageTextFieldToDefault()
@@ -129,14 +125,11 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
 
             val content =
-                   "Provide me with the 10 most popular diverse questions people would ask in any field around the world, and keep them concise.\n" +
-                           "\n" +
-                           "I need all questions in one line each question separated by , \n" +
-                           "For example: how is your day , what is Metaverse"
+                "Provide 10 essential questions from a variety of fields (include programming ) around the world, keeping them concise. Each question should be on its own line, separated by a comma and a space."
             val list = arrayListOf<ChatGBTMessage>()
             list.add(ChatGBTMessage(role = "user", content = content))
 
-            remoteRepository.getChatCompletion(list).onEach {
+            remoteRepository.getChatCompletion(list, "gpt-4").onEach {
                 when(it){
                     is DataState.Error -> {
                         state.update { state -> state.copy(
@@ -169,9 +162,6 @@ class MainViewModel @Inject constructor(
             messageTextInput = TextFieldValue(text, TextRange(text.length)),
             sendIconColor = SendIconClickableColor
         ) }
-//        messageTextFieldFocus = true
-//        messageTextInput = TextFieldValue(text, TextRange(text.length))
-//        sendIconColor = SendIconClickableColor
     }
 }
 

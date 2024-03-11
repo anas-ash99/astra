@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.anas.aiassistant.data.AppData
 import com.anas.aiassistant.data.AppData.suggestions
 import com.anas.aiassistant.domain.viewModel.MainViewModel
 import com.anas.aiassistant.presentaion.ErrorDialog
@@ -57,6 +58,7 @@ fun MainScreen(navController: NavHostController?) {
     val imaState = rememberImeState()
     LaunchedEffect(Unit){
         mainViewModel.init()
+        mainViewModel.chatList = AppData.chats
     }
     val scrollState = rememberScrollState()
 
@@ -64,7 +66,6 @@ fun MainScreen(navController: NavHostController?) {
     LaunchedEffect(key1 = imaState.value){
         scrollState.scrollTo(scrollState.maxValue)
     }
-
 
     Column (
         verticalArrangement= Arrangement.Top,
@@ -115,9 +116,7 @@ fun MainScreen(navController: NavHostController?) {
                     text = "Recent",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
-
                 )
-
                 Icon(
                     imageVector = Icons.Filled.KeyboardArrowRight,
                     contentDescription = "Go to recent",
@@ -129,7 +128,7 @@ fun MainScreen(navController: NavHostController?) {
             }
         }
 
-        for (recentItem in mainViewModel.chatList.takeLast(3).reversed()){
+        for (recentItem in mainViewModel.chatList.take(3)){ // take the 3 most recent chats
             RecentRow(recentItem.title, recentItem.id, navController)
         }
         Spacer(modifier = Modifier.weight(1f)) // Pushes content up

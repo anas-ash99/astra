@@ -43,6 +43,7 @@ fun DetailRecentRow(
     label:String,
     isLabelVisible:Boolean = false,
     messageTitle:String,
+    chatId:String,
     onItemClick:()->Unit,
     onEvent:(RecentChatsScreenEvent) ->Unit
 ) {
@@ -108,12 +109,12 @@ fun DetailRecentRow(
                 offset = DpOffset(x = LocalConfiguration.current.screenWidthDp.dp - 150.dp, y = (-10).dp)
             ) {
                 DropdownMenuItem(text = { Text(text = "Delete") }, onClick = {
-                    onEvent(RecentChatsScreenEvent.OnDeleteItemClick("hi this is an id "))
+                    onEvent(RecentChatsScreenEvent.OnDeleteItemClick(chatId))
                     contextMenuExpanded = false
                 })
                 DropdownMenuItem(text = { Text(text = "Pin") }, onClick = {
                     contextMenuExpanded = false
-                    onEvent(RecentChatsScreenEvent.OnPinItemClick("hi this is an id "))
+                    onEvent(RecentChatsScreenEvent.OnPinItemClick(chatId))
                 })
             }
 

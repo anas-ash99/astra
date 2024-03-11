@@ -1,5 +1,11 @@
 package com.anas.aiassistant.presentaion.bottomCard
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,6 +18,7 @@ import androidx.compose.material.icons.outlined.KeyboardAlt
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,11 +36,19 @@ import com.anas.aiassistant.shared.BaseViewmodelEvents
 fun CamAndMicContainer(modifier: Modifier = Modifier, state:MessageTextFieldState, onEvent:(BaseViewmodelEvents)->Unit) {
 
     val keyboardIconPainter = rememberVectorPainter(image = Icons.Outlined.KeyboardAlt)
+    val animatedSize by animateDpAsState(
+        targetValue = if (state.isIconsContainerExpanded) 180.dp else 130.dp,
+        animationSpec = tween(durationMillis = 800), label = "" // Customize duration
+    )
 
+    val animatedOpacity by animateFloatAsState(
+        targetValue = if (state.isIconsContainerExpanded) 1f else 0f,
+        animationSpec = tween(durationMillis = 800), label = "" // Customize duration
+    )
     Card(
         modifier = modifier
             .height(55.dp)
-            .width(state.mediaContainerWidth),
+            .width(animatedSize),
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFFd3e3fd)
         ),
@@ -48,24 +63,32 @@ fun CamAndMicContainer(modifier: Modifier = Modifier, state:MessageTextFieldStat
         ){
 
 
-            if (state.bottomCardKeyBoardIconVisible){
-                CircularIconButton(
-                    onClick = {onEvent(BaseViewmodelEvents.OnKeyboardIconClick)},
-                    icon = keyboardIconPainter, contentDescription = "keyboard" )
-            }
+            CircularIconButton(onClick = {}, icon = painterResource(id = R.drawable.camera_icon), contentDescription = "camera" )
             CircularIconButton(
                 onClick = { onEvent(BaseViewmodelEvents.OnMicClick) },
                 icon = painterResource(id = R.drawable.mic_icon),
                 contentDescription = "mic",
-                backgroundColor = state.micBackground)
-            CircularIconButton(onClick = {}, icon = painterResource(id = R.drawable.camera_icon), contentDescription = "camera" )
+                backgroundColor = state.micBackground
+            )
+
+            AnimatedVisibility(
+                visible = state.isIconsContainerExpanded,
+                enter = fadeIn(animationSpec = tween(800)),
+                exit = fadeOut(animationSpec = tween(800))
+            ) {
+                CircularIconButton(
+                    onClick = {
+                        onEvent(BaseViewmodelEvents.OnKeyboardIconClick)
+                    },
+                    icon = keyboardIconPainter,
+                    contentDescription = "keyboard",
+                )
+            }
 
         }
     }
 
 }
-
-
 
 
 @Preview

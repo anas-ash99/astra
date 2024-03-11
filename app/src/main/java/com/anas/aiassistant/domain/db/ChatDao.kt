@@ -10,7 +10,7 @@ import com.anas.aiassistant.model.ChatWithMessages
 
 @Dao
 interface ChatDao {
-    @Query("SELECT * FROM chat")
+    @Query("SELECT * FROM chat ORDER BY chat.lastMessageTimestamp DESC")
     suspend fun getAll(): List<ChatForDB>
     @Upsert
     suspend fun insertAll(chat: ChatForDB)

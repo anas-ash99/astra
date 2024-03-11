@@ -44,6 +44,7 @@ fun ChatScreen(navController: NavController?) {
         LaunchedEffect(chatId) {
             viewModel.setCurrentOpenChat(chatId)
         }
+
     }
 
     val backCallback = remember {
@@ -73,7 +74,7 @@ fun ChatScreen(navController: NavController?) {
 
 
         //// this text is not visible and its only purpose to trigger the app recompose the lazy column when any change is done to the message list
-               Text(text = "" + viewModel.lazyColumnChangeTrigger, modifier = Modifier.size(0.dp) )
+               Text(text = "${viewModel.lazyColumnChangeTrigger}", modifier = Modifier.size(0.dp) )
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         if (textFieldState.isTextFieldCardShown){
@@ -84,7 +85,7 @@ fun ChatScreen(navController: NavController?) {
         }
 
         // Restore the scroll position when the composable is first displayed
-        LaunchedEffect(viewModel.lazyColumnChangeTrigger, viewModel.scrollPosition) {
+        LaunchedEffect(viewModel.scrollPositionTrigger, viewModel.scrollPosition) {
 
             try {
                 if (openChat.messages.size> 1 && !viewModel.isErrorDialogShown){

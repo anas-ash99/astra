@@ -1,5 +1,6 @@
 package com.anas.aiassistant.domain.viewModel
 
+
 import android.annotation.SuppressLint
 import android.app.Application
 import android.media.MediaPlayer
@@ -33,6 +34,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 import javax.inject.Inject
 
@@ -44,18 +48,18 @@ class ChatScreenViewModel @Inject constructor(
     private val context: Application,
     speechRecognizer : SpeechRecognizer
 ) :BaseViewModel(
-    remoteRepository,
     context,
     databaseRepository,
     speechRecognizer
 ) {
+
     private var mediaPlayer = MediaPlayer()
 
     var scrollPosition by mutableStateOf(0)
     var openChat = MutableStateFlow(Chat())
     var isErrorDialogShown by mutableStateOf(false)
     var lazyColumnChangeTrigger by mutableStateOf(0)
-    var chatTitle by mutableStateOf("")
+    var scrollPositionTrigger by mutableStateOf(0)
     fun onScreenEvent(event:ChatScreenEvent){
 
         when(event){
@@ -69,7 +73,12 @@ class ChatScreenViewModel @Inject constructor(
     override fun onSendClick(navController: NavController?){
         // create new user message and add it to the chat
         if (textFieldState.value.messageTextInput.text.trim().isNotBlank()){
-            val newMessage = Message(id = UUID.randomUUID().toString(), chatId = openChat.value.id, content = textFieldState.value.messageTextInput.text.trim(), role = "user", createdAt = "")
+            val currentDateTime = ZonedDateTime.now()
+            val formattedDateTime = currentDateTime.format(DateTimeFormatter.ISO_INSTANT)
+
+            val customDateTime = ZonedDateTime.of(2024, 3, 8, 10, 30, 0, 0, ZoneId.systemDefault())
+            val formattedCustomDateTime = customDateTime.format(DateTimeFormatter.ISO_INSTANT)
+            val newMessage = Message(id = UUID.randomUUID().toString(), chatId = openChat.value.id, content = textFieldState.value.messageTextInput.text.trim(), role = "user", createdAt =formattedDateTime)
             openChat.value.messages.add(newMessage)
             scrollPosition = openChat.value.messages.size -1
             restMessageTextFieldToDefault()
@@ -78,6 +87,7 @@ class ChatScreenViewModel @Inject constructor(
             ) }
             getChatGbtResponse()
             saveMessageToDB(newMessage)
+            updateChatLastMessagesTimeStamp(newMessage.createdAt, openChat.value.id)
         }
     }
 
@@ -90,17 +100,22 @@ class ChatScreenViewModel @Inject constructor(
         ) }
     }
      private fun getChatGbtResponse() {
+         val currentDateTime = ZonedDateTime.now()
+         val formattedDateTime = currentDateTime.format(DateTimeFormatter.ISO_INSTANT)
+
+         val customDateTime = ZonedDateTime.of(2024, 3, 10, 11, 59, 0, 0, ZoneId.systemDefault())
+         val formattedCustomDateTime = customDateTime.format(DateTimeFormatter.ISO_INSTANT)
          val list = arrayListOf<ChatGBTMessage>()
          openChat.value.messages.forEach { msg ->
              list.add(ChatGBTMessage(role = msg.role, content = msg.content))
          }
 
          viewModelScope.launch {
-             val tempMessage = Message(id = UUID.randomUUID().toString(), chatId = openChat.value.id, content = "", role = "system", createdAt = "", isContentLoading = true)
+             val tempMessage = Message(id = UUID.randomUUID().toString(), chatId = openChat.value.id, content = "", role = "system", createdAt = formattedDateTime, isContentLoading = true)
              openChat.value.messages.add(tempMessage)
              lazyColumnChangeTrigger =+ 1
             var chatRes: ChatCompletionRes
-            remoteRepository.getChatCompletion(list).onEach {
+            remoteRepository.getChatCompletion(list, "gpt-3.5-turbo").onEach {
                 when(it){
                     is DataState.Success ->{
                         chatRes = it.data
@@ -108,16 +123,16 @@ class ChatScreenViewModel @Inject constructor(
 
                         displayChatResponse(resMessage, tempMessage.id)
                         saveMessageToDB(tempMessage)
+                        updateChatLastMessagesTimeStamp(tempMessage.createdAt, openChat.value.id)
                         if (openChat.value.title.isBlank()) getChatTitle()
                     }
                     is DataState.Error -> {
                         isErrorDialogShown = true
                         openChat.value.messages.remove(tempMessage)
                         lazyColumnChangeTrigger += 1
-                        getChatTitle()
                     }
                     DataState.Loading -> {
-                         changeMessageLoadingStatus(true, tempMessage.id)
+                         changeMessageLoadingStatus(tempMessage.id)
                     }
                 }
             }.launchIn(viewModelScope)
@@ -142,8 +157,6 @@ class ChatScreenViewModel @Inject constructor(
                        if (openChat.value.messages[openChat.value.messages.size -1].role == "user"){ // check if this is the last message was from the user then get chatgbt response
                            getChatGbtResponse()
                        }
-
-
                    }
                }
            }.launchIn(viewModelScope)
@@ -152,10 +165,10 @@ class ChatScreenViewModel @Inject constructor(
     }
 
 
-    private fun changeMessageLoadingStatus(isLoading:Boolean, messageId:String){
+    private fun changeMessageLoadingStatus(messageId:String){
         openChat.value.messages.forEach { msg ->
             if (msg.id == messageId){
-                msg.isContentLoading = isLoading
+                msg.isContentLoading = true
             }
         }
         lazyColumnChangeTrigger += 1
@@ -183,8 +196,6 @@ class ChatScreenViewModel @Inject constructor(
             }
         }
     }
-
-
     private fun readMessage(text:String, messageId:String) {
         viewModelScope.launch {
             remoteRepository.generateSpeechFromText(text).onEach { res->
@@ -259,7 +270,7 @@ class ChatScreenViewModel @Inject constructor(
                 if(index % 3 == 0){  // add a delay every 3 characters
                     delay(1)
                 }
-                lazyColumnChangeTrigger += 1
+                scrollPositionTrigger += 1
             }
         }
 
@@ -293,12 +304,13 @@ class ChatScreenViewModel @Inject constructor(
         viewModelScope.launch {
             val list = arrayListOf<ChatGBTMessage>()
 
-            var messageContent = "give me a title for following chat between a user and AI. the length of the title should not exceed 25 letters "
+            var messageContent =  "Analyze this older conversation between me and you and capture the tone: "
             messageContent += "\n user: ${openChat.value.messages[0].content}"
-            messageContent += "\n AI: ${openChat.value.messages[1].content}"
+            messageContent += "\n You: ${openChat.value.messages[1].content}"
+            messageContent += "\n Create the shortest possible title that still conveys the basic topic. Maximum 25 letters. Do not include any quotation marks in the title "
 
             list.add(ChatGBTMessage(role = "user", content = messageContent))
-            remoteRepository.getChatCompletion(list).onEach {
+            remoteRepository.getChatCompletion(list, "gpt-4").onEach {
                 when(it){
                     is DataState.Error -> {
                         Toast.makeText(context, "Error getting chat title", Toast.LENGTH_SHORT).show()
@@ -306,7 +318,11 @@ class ChatScreenViewModel @Inject constructor(
                     DataState.Loading -> {}
                     is DataState.Success -> {
                         val chatRes = it.data
-                        val resMessage = chatRes.choices[0].message.content.trim()
+                        var resMessage = chatRes.choices[0].message.content.trim()
+                        resMessage.replace(Regex("^\"|\"$"), "") // remove any extra double quote
+                        if (resMessage.length > 28){ // in case the title is to ling cut down to 28 characters
+                           resMessage =  resMessage.take(28) + "..."
+                        }
                         animateChatTitleChange(resMessage)
                         updateChatTitleInDb(resMessage)
 
@@ -318,13 +334,14 @@ class ChatScreenViewModel @Inject constructor(
     }
 
     private suspend fun updateChatTitleInDb(title:String){
-        AppData.chats2.forEach { chat ->
+        AppData.chats.forEach { chat ->
             if (chat.id== openChat.value.id) {
                 chat.title = title
                 databaseRepository.updateChat(chat)
             }
         }
     }
+
 
 
 }

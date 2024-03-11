@@ -1,12 +1,10 @@
 package com.anas.aiassistant.data
 
-import com.anas.aiassistant.model.Chat
 import com.anas.aiassistant.model.ChatForDB
 
 object AppData {
 
-    var chats = arrayListOf<Chat>()
-    var chats2 = arrayListOf<ChatForDB>()
+    var chats = arrayListOf<ChatForDB>()
     val suggestions = listOf("Write a suspenseful story set in a futuristic underwater city",
         "What measures can be taken to promote equality in the workplace?",
         "Share a recipe for a delicious dish",

@@ -9,6 +9,8 @@ data class ChatForDB(
     @PrimaryKey
     var id:String  = "",
     var title:String = "",
+    var isPinned:Boolean =false,
     var createdAt:String = "",
     var lastMessageTimestamp:String = ""
+
 )

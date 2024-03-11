@@ -1,3 +1,4 @@
+import java.util.Properties
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -6,12 +7,14 @@ plugins {
 }
 
 android {
+
     namespace = "com.anas.aiassistant"
     compileSdk = 34
 
     defaultConfig {
         applicationId = "com.anas.aiassistant"
         minSdk = 26
+        //noinspection EditedTargetSdkVersion
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -19,7 +22,16 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
+
         }
+
+        // Get the API keys from local.properties
+        val properties = Properties()
+        properties.load(project.rootProject.file("local.properties").inputStream())
+
+        // Set API keys in BuildConfig
+        buildConfigField("String", "OPEN_AI_KEY", properties.getProperty("OPEN_AI_KEY"))
+
     }
 
     buildTypes {
@@ -31,6 +43,7 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -40,6 +53,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.4.3"
@@ -52,16 +66,16 @@ android {
 }
 
 dependencies {
-    val room_version = "2.6.1"
+    val roomVersion = "2.6.1"
 
-    implementation ("androidx.room:room-runtime:$room_version")
+    implementation ("androidx.room:room-runtime:$roomVersion")
 //    annotationProcessor ("androidx.room:room-compiler:$room_version")
     //noinspection KaptUsageInsteadOfKsp
     implementation("com.google.dagger:hilt-android:2.48")
     kapt("com.google.dagger:hilt-android-compiler:2.48")
-    implementation("androidx.hilt:hilt-navigation-compose:1.0.0-alpha02")
-    kapt("androidx.room:room-compiler:$room_version")
-    implementation("androidx.room:room-ktx:$room_version")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    kapt("androidx.room:room-compiler:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.activity:activity-compose:1.7.0")
@@ -75,6 +89,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.6.1")
     implementation("androidx.compose.ui:ui-tooling-preview:1.6.2")
     implementation("androidx.activity:activity-compose:1.8.2")
+    implementation("io.github.cdimascio:dotenv-kotlin:6.3.1")
     implementation("ai.picovoice:porcupine-android:2.1.0")
     implementation("com.google.android.exoplayer:exoplayer:2.19.1")
     implementation("androidx.compose.ui:ui-graphics")
@@ -90,6 +105,7 @@ dependencies {
 
 
 }
+
 
 kapt {
     correctErrorTypes = true

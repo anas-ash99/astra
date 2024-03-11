@@ -15,22 +15,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.anas.aiassistant.data.AppData
 import com.anas.aiassistant.dataState.DataState
 import com.anas.aiassistant.dataState.MessageTextFieldState
 import com.anas.aiassistant.model.ChatForDB
 import com.anas.aiassistant.model.DatabaseRepository
 import com.anas.aiassistant.model.Message
-import com.anas.aiassistant.model.RemoteRepository
 import com.anas.aiassistant.shared.BaseViewmodelEvents
 import com.anas.aiassistant.shared.StringValues.text_field_hint_expanded
 import com.anas.aiassistant.ui.theme.AppMainColor
 import com.anas.aiassistant.ui.theme.SendIconClickableColor
 import com.anas.aiassistant.ui.theme.SendIconNotClickableColor
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -39,7 +37,6 @@ import kotlinx.coroutines.launch
 
 @SuppressLint("StaticFieldLeak")
 abstract class BaseViewModel(
-    private val remoteRepository: RemoteRepository,
     private val context: Application,
     private val databaseRepository: DatabaseRepository,
     private val speechRecognizer :SpeechRecognizer
@@ -80,36 +77,21 @@ abstract class BaseViewModel(
     }
     private fun handelMickClick() {
 
-        textFieldState.update { it.copy(
-            isTextFieldCardShown = true, // expend the text field card in chat screen
-            messageTextFieldFocus = false
-        ) }
-
-//       isTextFieldCardShown = true // expend the text field card in chat screen
-//        messageTextFieldFocus = false
-        if (textFieldState.value.mediaContainerWidth == 180.dp){ // when stopped listening
+        if (textFieldState.value.isIconsContainerExpanded){ // when stopped listening
             this.speechRecognizer.destroy()
             restMediaContainerToDefault()
-        }else{ // when listening
-            viewModelScope.launch { // extend the media container with animation
-                for (i in 1..5) {
-                    delay(50)
-                    textFieldState.update { it.copy(
-                        mediaContainerWidth = it.mediaContainerWidth + 10.dp
-                    ) }
-
-                }
-            }
+        }else{ // start listening
             textFieldState.update { it.copy(
                 micBackground = Color.Gray,
                 messageTextInputHint = "Listening ...",
-                bottomCardKeyBoardIconVisible = true
+                isIconsContainerExpanded = true
             ) }
             startListening(this.speechRecognizer)
-//            bottomCardKeyBoardIconVisible = true
         }
 
         textFieldState.update { it.copy(
+            isTextFieldCardShown = true, // expend the text field card in chat screen
+            messageTextFieldFocus = false,
             launchedEffectTFFocusTrigger = it.launchedEffectTFFocusTrigger + 1
         ) }
 
@@ -141,29 +123,12 @@ abstract class BaseViewModel(
         }
     }
     private fun restMediaContainerToDefault(){
-      viewModelScope.launch {
-
-          if (textFieldState.value.mediaContainerWidth > 150.dp){
-              for (i in 1..5) {
-                  delay(50)
-                  textFieldState.update { it.copy(
-                      mediaContainerWidth = it.mediaContainerWidth - 10.dp
-                  ) }
-              }
-          }
-
-        }
 
         textFieldState.update { it.copy(
             micBackground = AppMainColor,
             messageTextInputHint = text_field_hint_expanded,
-            bottomCardKeyBoardIconVisible = false
+            isIconsContainerExpanded = false
         ) }
-//        micBackground = AppMainColor
-//        messageTextInputHint = text_field_hint_expanded
-//        bottomCardKeyBoardIconVisible = false
-    }
-    fun onMediaUploadClick(){
 
     }
 
@@ -175,10 +140,12 @@ abstract class BaseViewModel(
                 override fun onRmsChanged(rmsdB: Float) = Unit
                 override fun onBufferReceived(buffer: ByteArray?) = Unit
                 override fun onEndOfSpeech() = Unit
-                override fun onError(error: Int) {
-                    Log.e("audio listening", error.toString())
+                override fun onError(errorCode: Int) {
+                    if (errorCode != 7){ // code 7 is when user open the mic but input no speech
+                        Toast.makeText(context, "Error starting the speech recognizer", Toast.LENGTH_SHORT).show()
+                    }
+                    Log.e("audio listening", errorCode.toString())
                     restMediaContainerToDefault()
-                    Toast.makeText(context, "Error starting the speech recognizer", Toast.LENGTH_SHORT).show()
                 }
                 override fun onEvent(eventType: Int, params: Bundle?) {}
                 override fun onPartialResults(partialResults: Bundle?) =Unit
@@ -190,15 +157,12 @@ abstract class BaseViewModel(
                             textFieldState.update { it.copy(
                                 messageTextInput = TextFieldValue(resText, TextRange(resText.length))
                             ) }
-//                            messageTextInput = TextFieldValue(it, TextRange(it.length))
+
                         }else{ // add to the existing text
                             textFieldState.update { it.copy(
                                 cursorPosition = it.messageTextInput.text.length + resText.length + 1, /// add one for the space
                                 messageTextInput = TextFieldValue("${it.messageTextInput.text.trim()} $resText", TextRange(it.messageTextInput.text.length + resText.length + 1))
                             ) }
-//                            cursorPosition = messageTextInput.text.length + it.length + 1 /// add one for the space
-//                            messageTextInput = TextFieldValue("${messageTextInput.text.trim()} $it", TextRange(cursorPosition))
-
                         }
                         textFieldState.update { it.copy(
                             sendIconColor = if (resText.isNotBlank()) SendIconClickableColor else  SendIconClickableColor
@@ -223,10 +187,8 @@ abstract class BaseViewModel(
             messageTextFieldFocus = false,
             sendIconColor = SendIconNotClickableColor
         ) }
-//        messageTextInput = TextFieldValue("", TextRange(0))
         restMediaContainerToDefault()
-//        messageTextFieldFocus = false
-//        sendIconColor = SendIconNotClickableColor
+
     }
     private fun onKeyboardIconClick(){
         restMediaContainerToDefault()
@@ -234,7 +196,17 @@ abstract class BaseViewModel(
         textFieldState.update { it.copy(
             messageTextFieldFocus = true,
         ) }
-
+    }
+    protected fun updateChatLastMessagesTimeStamp(timeStamp:String, chatId:String){
+        viewModelScope.launch {
+            AppData.chats.forEach { chat ->
+                if (chat.id== chatId) {
+                    chat.lastMessageTimestamp = timeStamp
+                    databaseRepository.updateChat(chat)
+                }
+            }
+            AppData.chats = ArrayList(AppData.chats.sortedByDescending { it.lastMessageTimestamp }.toList())
+        }
     }
 
 }

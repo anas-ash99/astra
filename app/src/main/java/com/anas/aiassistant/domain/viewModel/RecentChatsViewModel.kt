@@ -16,6 +16,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import java.time.ZonedDateTime
+import java.time.format.TextStyle
+import java.time.temporal.ChronoUnit
+import java.util.Locale
 import javax.inject.Inject
 
 
@@ -25,14 +29,12 @@ class RecentChatsViewModel @Inject constructor(
     private val context: Application
 )  :ViewModel() {
 
-
-
-    var isInitialized by mutableStateOf(false)
-    val chatList = mutableStateOf(AppData.chats2)
+    private var isInitialized by mutableStateOf(false)
+    var chatList by mutableStateOf(AppData.chats)
     fun onEvent(event:RecentChatsScreenEvent){
         when(event){
             is RecentChatsScreenEvent.OnDeleteItemClick -> {
-                Toast.makeText(context, "delete item ${event.id.take(5)}", Toast.LENGTH_SHORT).show()
+                deleteChat(event.id)
             }
             is RecentChatsScreenEvent.OnItemClick -> {
                 event.navController.navigate("chat_screen/${event.id}")
@@ -40,6 +42,8 @@ class RecentChatsViewModel @Inject constructor(
             is RecentChatsScreenEvent.OnPinItemClick -> {
                 Toast.makeText(context, "Pin item ${event.id.take(5)}", Toast.LENGTH_SHORT).show()
             }
+
+            is RecentChatsScreenEvent.OnBackClick -> event.navController.popBackStack()
         }
     }
 
@@ -49,14 +53,17 @@ class RecentChatsViewModel @Inject constructor(
             val res = databaseRepository.deleteChatById(id)
             if (!res){
                 Toast.makeText(context, "error deleting the chat", Toast.LENGTH_SHORT).show()
-            }else{
-                AppData.chats2.removeIf { it.id == id }
+            }else{ // deletion was successful
+                chatList = ArrayList(chatList.filter{ it.id != id }.toList())
+                AppData.chats = chatList
             }
         }
     }
 
     private fun updateChat(chat: ChatForDB){
-
+        viewModelScope.launch {
+            databaseRepository.updateChat(chat)
+        }
     }
     fun init(){
         if (!isInitialized){ // run this code only once th
@@ -76,12 +83,26 @@ class RecentChatsViewModel @Inject constructor(
 //                        chatGbtLoading  = true
                     }
                     is DataState.Success -> {
-//                        chatList = it.data
+                        chatList = it.data
                     }
                 }
             }.launchIn(viewModelScope)
         }
     }
-
+    fun getLabel(date: ZonedDateTime): String {
+        val now = ZonedDateTime.now()
+        return when {
+            ChronoUnit.DAYS.between(date, now) == 0L -> { // within the last 24 hours
+                if (date.dayOfWeek == now.dayOfWeek){
+                    "Today"
+                }else{
+                    "Previous 30 days"
+                }
+            }
+            ChronoUnit.DAYS.between(date, now) <= 30 -> "Previous 30 days"
+            date.year == now.year -> date.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+            else -> "${date.month.getDisplayName(TextStyle.FULL, Locale.getDefault())} ${date.year}"
+        }
+    }
 
 }

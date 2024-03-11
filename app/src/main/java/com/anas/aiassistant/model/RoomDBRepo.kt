@@ -17,7 +17,7 @@ class RoomDBRepo constructor(
             emit(DataState.Loading)
             val chats = ArrayList(chatDao.getAll().toList())
 
-            AppData.chats2 = chats
+            AppData.chats = chats
             emit(DataState.Success(chats))
         }catch (e:Exception){
             emit(DataState.Error(e))
