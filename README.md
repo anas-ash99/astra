@@ -1,12 +1,11 @@
 # Astra AI
 
-Astra AI is an intelligent chat assistant that leverages the power of OpenAI's large language models (like ChatGPT) to provide engaging and informative conversations. Whether you want to learn something new, get creative inspiration, or just have a friendly chat, Astra AI is always ready to help.
+Astra AI is an intelligent chat assistant that leverages the power of OpenAI's large language models (ChatGPT) to provide engaging and informative conversations. Whether you want to learn something new, get creative inspiration, or just have a friendly chat, Astra AI is always ready to help.
 
 ## Features
 
 * **Informative Conversations:** Ask questions about various topics and get comprehensive answers
-* **Creative Assistance:**  Brainstorm ideas, generate text formats (poems, code snippets, scripts, etc.), or get help with writing.
-* **Personalized Interaction:** Astra AI learns from your conversations, adapting to your preferences and interests.
+* **Creative Assistance:**  Brainstorm ideas, generate text formats (poems, scripts, etc.), or get help with writing.
 * **Offline History:** Your chats  are saved locally using Room database for easy reference, even if you're offline.
 
 ## Technologies Used
@@ -18,17 +17,16 @@ Astra AI is an intelligent chat assistant that leverages the power of OpenAI's l
   * LiveData
   * Room (for local chat storage)
 * OpenAI API (for accessing the language model)
-* Retrofit (or another networking library you used)
+* Retrofit (for networking)
 * Dagger Hilt (for dependency injection)
-* * Retrofit (for networking, if used)
 
 
 ## Getting Started
 
 ### Prerequisites
 
-* Android Studio Arctic Fox (or later)
-* Android SDK (API level 21+)
+* Android Studio
+* Android SDK (API level 26+)
 * An OpenAI API key ([https://platform.openai.com/api-keys](https://platform.openai.com/api-keys))
 
 ### Installation
