@@ -32,7 +32,7 @@ Astra AI is an intelligent chat assistant that leverages the power of OpenAI's l
 ### Installation
 
 **Download the app from the following link:**
-(Download)[https://drive.google.com/file/d/1_tqIBW0OBINfHRBWzFIXp9_pb0Uk6qtN/view?usp=sharing]
+[Download](https://drive.google.com/file/d/1_tqIBW0OBINfHRBWzFIXp9_pb0Uk6qtN/view?usp=sharing)
 
 **For development:**
 
