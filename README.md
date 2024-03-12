@@ -1,12 +1,13 @@
 # Astra AI
 
-Astra AI is an intelligent chat assistant that leverages the power of OpenAI's large language models (ChatGPT) to provide engaging and informative conversations. The app leverages Jetpack Compose for a modern, responsive user interface and leverages the MVVM pattern for a clean and maintainable codebase
+Astra AI is an intelligent chat assistant that leverages the power of OpenAI's large language models (ChatGPT) to provide engaging and informative conversations. The app leverages uses Compose for a modern, responsive user Jetpack Compose interface and leverages the MVVM pattern for a clean and maintainable codebase
 
 ## Features
 
 * **Informative Conversations:** Ask questions about various topics and get comprehensive answers
 * **Creative Assistance:**  Brainstorm ideas, generate text formats (poems, scripts, etc.), or get help with writing.
 * **Offline History:** Your chats  are saved locally using Room database for easy reference, even if you're offline.
+* **Text-to-Speech Response:** Listen to Astra AI's responses for hands-free interaction.
 
 ## Technologies Used
 
@@ -16,7 +17,7 @@ Astra AI is an intelligent chat assistant that leverages the power of OpenAI's l
   * ViewModel (for the MVVM pattern)
   * LiveData
   * Room (for local chat storage)
-* OpenAI API (for accessing the language model)
+* OpenAI API (for accessing the large language model and text to speech functionality)
 * Retrofit (for networking)
 * Dagger Hilt (for dependency injection)
 
