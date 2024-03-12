@@ -7,7 +7,7 @@ Astra AI is an intelligent chat assistant that leverages the power of OpenAI's l
 * **Informative Conversations:** Ask questions about various topics and get comprehensive answers
 * **Creative Assistance:**  Brainstorm ideas, generate text formats (poems, scripts, etc.), or get help with writing.
 * **Offline History:** Your chats  are saved locally using Room database for easy reference, even if you're offline.
-* **Text-to-Speech Response:** Listen to Astra AI's responses for hands-free interaction.
+* **Text-to-Speech Response:** Have Astra AI's responses read aloud.
 
 ## Technologies Used
 
