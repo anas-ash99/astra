@@ -1,6 +1,6 @@
 # Astra AI
 
-Astra AI is an intelligent chat assistant that leverages the power of OpenAI's large language models (ChatGPT) to provide engaging and informative conversations. Whether you want to learn something new, get creative inspiration, or just have a friendly chat, Astra AI is always ready to help.
+Astra AI is an intelligent chat assistant that leverages the power of OpenAI's large language models (ChatGPT) to provide engaging and informative conversations. The App is built in jetpack compose and uses the MVVM architectural pattern
 
 ## Features
 
@@ -32,7 +32,7 @@ Astra AI is an intelligent chat assistant that leverages the power of OpenAI's l
 ### Installation
 
 **Download the app from the following link:**
-[Link to the app on the Play Store (will be added when published)]
+[https://drive.google.com/file/d/1_tqIBW0OBINfHRBWzFIXp9_pb0Uk6qtN/view?usp=sharing]
 
 **For development:**
 
